@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title> GeoMap </title>
+    <meta name="description" content="绘制SVG地图的JavaScript控件"/>
+    <meta name="keywords" content="svg,地图,geojson,javascript"/>
+    <meta name="author" content="Dx. Yang"/>
+    <link media="screen" href="/public/css/bootstrap.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="/public/js/jquery-1.8.2.min.js"></script>
+    <script type="text/javascript" src="/public/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/public/js/raphael-min.js"></script>
+    <script type="text/javascript" src="/public/js/geomap.js"></script>
+</head>
+<body>
+<style>
+    #main-container{max-width:800px; margin:30px auto 0;}
+    .jumbotron{margin-top:50px; text-align:center;}
+    .jumbotron h1{font-size:40px; line-height:200%;}
+    .lead{margin: 50px auto}
+</style>
+<div id="main-container">
+
+    <div class="masthead">
+        <ul class="nav nav-pills pull-right">
+            <li class="active"><a href="/public/pages/geomap.html">项目首页</a></li>
+            <li><a href="https://github.com/x6doooo/GeoMap/blob/master/api.md">文档</a></li>
+            <li ><a href="/public/pages/geomap-list.html">示例</a></li>
+            <li><a href="https://github.com/x6doooo/GeoMap">GitHub</a></li>
+        </ul>
+        <h3 class="muted">GeoMap</h3>
+    </div>
+    <hr />
+
+    <h2>经纬度坐标转换成平面坐标</h2>
+
+    <div id="map" style="width:800px;height:400px;margin-top:40px;">
+    </div>
+
+    <div id="tooltip" style="position:absolute;padding:10px;background:#fff;border:5px solid #708090;display:none;">
+    </div>
+
+    <script>
+
+        var cities = {
+            '洛杉矶' :{y:34.0396,x:-118.2661},
+            '多伦多': {y:43.6667,x:-79.4167},
+            '渥太华': {y:45.4167,x:-75.7000},
+            '纽约': {y:40.71435280,x:-74.00597309999999},
+            '里约热内卢': {y : -22.90353930,x : -43.20958690},
+            '马德里': {y:40.4086,x:-3.6922},
+            '伦敦': {y:51.5142,x:-0.0931},
+            '阿姆斯特丹': {y:52.3500,x:4.9167},
+            '巴黎': {y:48.8667,x:2.3333},
+            '罗马': {y:44.4833,x:11.3333},
+            '耶路撒冷': {y:31.7800,x:35.2300},
+            '莫斯科': {y:55.7522,x:37.6156},
+            '北京': {y:39.90,x:116.42},
+            '东京': {y:35.6850,x:139.7514},
+            '上海': {y:31.14,x:121.29},
+            '香港': {y:22.39,x:114.1},
+            '台北': {y:25.03,x:121.30},
+            '悉尼': {y:-33.86748690,x:151.20699020}
+        };
+
+        //实例化一个GeoMap对象
+        var map = new GeoMap({
+            //指定地图渲染位置
+            container: '#map',
+            //指定横纵缩放比
+            scale: {
+                x: 2.2,
+                y: 2.6
+            }
+        });
+
+        var color,
+                city,
+                p,
+                arr = map.canvas.set(),
+                tooltip = $('#tooltip');
+
+
+        //ajax获取地图数据
+        $.ajax({
+            url: '/public/json/world.geo.json',
+            dataType: 'json'
+        }).done(function(json){
+            //地图对象加载数据
+            map.load(json);
+            //渲染
+            map.render();
+
+            //绘制世界主要城市
+            $.each(cities, function(k, v){
+
+                //随机颜色
+                color = '#' + Math.random().toString(16).substring(2, 8);
+                if(7 - color.length != 0){
+                    color += Math.random().toString(16).substring(2, 9 - color.length);
+                }
+
+                //经纬度坐标转换成平面坐标
+                p = map.geo2pos(v);
+
+                city = map.canvas.circle(p[0], p[1], 5).attr({
+                    fill: color,
+                    'stroke-width': 0
+                });
+
+                city.data({
+                    name: k,
+                    pos: v
+                });
+
+                arr.push(city);
+
+                arr.hover(function(e){
+
+                    e = $.event.fix(e);
+                    var self = this,
+                            top = e.pageY,
+                            left = e.pageX;
+
+                    tooltip.html(self.data('name') +
+                            '<br />lng = ' +
+                            self.data('pos').x + '<br />lat = ' +
+                            self.data('pos').y).css({
+                        "top" : top,
+                        "left" : left + 10,
+                        "line-height" : "200%",
+                        "font-size": "12px"
+                    }).show();
+
+                }, function(){
+                    tooltip.empty().hide();
+                })
+
+
+            });
+
+
+        });
+
+    </script>
+
+    <p id="footer" style="border-top:1px solid #ddd;color:#999;margin-top:80px;padding-top:10px">
+        xbingoz &copy; <script>var year = (new Date()).getFullYear();document.write(year)</script>
+    </p>
+</div>
+</body>
+</html>
+</body>
+</html>
